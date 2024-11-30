@@ -21,9 +21,6 @@ export default (router) => {
 
   router.post("/projects", async (req, res) => {
     res.json(await projectsService.saveProject(req.body))
-
-    // if (user) res.json(noteService.tasksService(req.body))
-    // else res.status(403).json("Invalid or Expired Token")
   })
 
   router.put("/projects/:id", async (req, res) => {

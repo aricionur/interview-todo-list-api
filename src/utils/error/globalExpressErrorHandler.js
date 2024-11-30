@@ -1,5 +1,5 @@
 export const errorHandler = (err, req, res, next) => {
-  console.error(err.stack) // Log the error stack to the console
+  console.error(err.stack) // Log the error stack to the console and/or remote log server.
 
   res.status(500).json({
     message: "Internal Server Error",

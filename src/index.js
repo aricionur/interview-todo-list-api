@@ -12,7 +12,7 @@ app.use(express.json())
 // Register all routes
 registerRoutes(app)
 
-// Register the error handler middleware
+// Middleware for global error handling
 app.use(errorHandler)
 
 // Define a port

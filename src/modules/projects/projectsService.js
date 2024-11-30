@@ -1,5 +1,6 @@
 import { projectsCollection } from "./collections/projectsCollection.js"
 import { ObjectId } from "mongodb"
+import { NotFoundError } from "../../utils/error/customErrors.js"
 
 export class ProjectsService {
   constructor() {
@@ -19,6 +20,7 @@ export class ProjectsService {
   }
 
   async saveProject(project) {
+    // Update a project
     if (project._id) {
       const objectId = ObjectId.createFromHexString(project._id) // Use this for creating ObjectId from a valid hex string
 
@@ -26,7 +28,7 @@ export class ProjectsService {
 
       const dbResult = await this.collection.updateOne({ _id: objectId }, { $set: project })
 
-      if (!dbResult.matchedCount) throw new Error(`The given id:${objectId} does not exist! `)
+      if (!dbResult.matchedCount) throw new NotFoundError(`No project found for given id:${objectId}`)
 
       return this.collection.findOne({ _id: objectId })
     }
@@ -45,7 +47,7 @@ export class ProjectsService {
 
     const dbResult = await this.collection.deleteOne({ _id: objectId })
 
-    if (!dbResult.deletedCount) throw new Error(`The given id:${objectId} does not exist! `)
+    if (!dbResult.deletedCount) throw new NotFoundError(`No project found for given id:${objectId}`)
     else return { isSuccess: true }
   }
 }
