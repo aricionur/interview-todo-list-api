@@ -1,5 +1,6 @@
 import { tasksCollection } from "./collections/tasksCollection.js"
 import { ObjectId } from "mongodb"
+import { NotFoundError } from "../../utils/error/customErrors.js"
 
 export const TaskStatus = Object.freeze({
   TODO: "to-do",
@@ -24,17 +25,18 @@ export class TasksService {
   }
 
   async saveTask(task) {
+    if (task.dueDate) task.dueDate = new Date(task.dueDate)
+    if (task.projectId) task.projectId = ObjectId.createFromHexString(task.projectId)
+
+    // Update a task
     if (task._id) {
-      // Update the task
-      // Todo: check here if id is valid if not throw an error
-      const objectId = ObjectId.createFromHexString(task._id) // Use this for creating ObjectId from a valid hex string
+      const objectId = ObjectId.createFromHexString(task._id)
 
       delete task._id
 
       const dbResult = await this.collection.updateOne({ _id: objectId }, { $set: task })
 
-      //todo: handle this as not found error, and return a global API something went wrong error.
-      if (!dbResult.matchedCount) throw new Error(`The given id:${objectId} does not exist! `)
+      if (!dbResult.matchedCount) throw new NotFoundError(`No task found for given id:${objectId}`)
 
       return this.collection.findOne({ _id: objectId })
     }
@@ -42,24 +44,22 @@ export class TasksService {
     // Insert a new task
     task.status = "to-do"
     task.startDate = new Date()
-    task.dueDate = new Date(task.dueDate)
-    task.projectId = ObjectId.createFromHexString(task.projectId)
 
     const dbResult = await this.collection.insertOne(task)
+
     return this.collection.findOne({ _id: dbResult.insertedId })
   }
 
   async deleteTask(_id) {
-    const objectId = ObjectId.createFromHexString(_id) // Use this for creating ObjectId from a valid hex string
+    const objectId = ObjectId.createFromHexString(_id)
 
     const dbResult = await this.collection.deleteOne({ _id: objectId })
-    console.log(dbResult)
 
-    if (!dbResult.deletedCount) throw new Error(`The given id:${objectId} does not exist! `)
+    if (!dbResult.deletedCount) throw new NotFoundError(`No task found for given id:${objectId}`)
     else return { isSuccess: true }
   }
 
-  markTaskDone(_id) {
+  async markTaskDone(_id) {
     const task = { _id, status: TaskStatus.DONE, doneDate: new Date() }
 
     return this.saveTask(task)

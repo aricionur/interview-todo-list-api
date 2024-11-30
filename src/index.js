@@ -1,6 +1,7 @@
 import express from "express"
 
 import registerRoutes from "./routes/index.js"
+import { errorHandler } from "./utils/error/globalExpressErrorHandler.js"
 
 // Initialize an Express app
 const app = express()
@@ -8,18 +9,11 @@ const app = express()
 // Middleware to parse JSON
 app.use(express.json())
 
-// Register all router into app
+// Register all routes
 registerRoutes(app)
 
-// Error handling middleware (must be placed after all routes)
-// app.use((err, req, res, next) => {
-//   console.error(err.stack) // Log the error stack to the console
-
-//   res.status(500).json({
-//     message: "Internal Server Error",
-//     error: err.message || "Something went wrong on the server.",
-//   })
-// })
+// Register the error handler middleware
+app.use(errorHandler)
 
 // Define a port
 const PORT = 3000

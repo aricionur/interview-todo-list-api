@@ -1,7 +1,7 @@
+import { ObjectId } from "mongodb"
 import { TasksService } from "../modules/tasks/tasksService.js"
 import { ProjectsService } from "../modules/projects/projectsService.js"
-
-import { ObjectId } from "mongodb"
+import { NotFoundError } from "../utils/error/customErrors.js"
 
 export default (router) => {
   const tasksService = new TasksService()
@@ -51,38 +51,51 @@ export default (router) => {
     const task = req.body
     task._id = id
 
-    if (task.dueDate) task.dueDate = new Date(task.dueDate)
-    if (task.projectId) task.projectId = ObjectId.createFromHexString(task._id)
-
     res.json(await tasksService.saveTask(task))
   })
 
+  // ***  we can also handle the not found items in with a try-catch block ***
+  router.delete("/tasks/:id", async (req, res, next) => {
+    try {
+      const { id } = req.params
+
+      res.json(await tasksService.deleteTask(id))
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        return res.status(error.statusCode).json({ error: error.message })
+      }
+
+      next(error)
+    }
+  })
+
+  // ***  we can also handle the not found items in with a try-catch block ***
   router.put("/tasks/markDone/:id", async (req, res) => {
-    const { id } = req.params
+    try {
+      const { id } = req.params
 
-    if (!(await tasksService.getTasks({ _id: id }))) {
-      res.status(404).send(`No task found for given id:${id}`)
-      return
+      res.json(await tasksService.markTaskDone(id))
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        return res.status(error.statusCode).json({ error: error.message })
+      }
+
+      next(error)
     }
-
-    res.json(await tasksService.markTaskDone(id))
   })
 
-  router.put("/tasks/markUnDone/:id", async (req, res) => {
-    const { id } = req.params
+  // ***  we can also handle the not found items in with a try-catch block ***
+  router.put("/tasks/markUnDone/:id", async (req, res, next) => {
+    try {
+      const { id } = req.params
 
-    if (!(await tasksService.getTasks({ _id: id }))) {
-      res.status(404).send(`No task found for given id:${id}`)
-      return
+      res.json(await tasksService.markTaskUnDone(id))
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        return res.status(error.statusCode).json({ error: error.message })
+      }
+
+      next(error)
     }
-
-    res.json(await tasksService.markTaskUnDone(id))
-  })
-
-  router.delete("/tasks/:id", async (req, res) => {
-    const { id } = req.params
-
-    if (!(await tasksService.getTasks({ _id: id }))) res.status(404).send(`No task found for given id:${id}`)
-    else res.json(await tasksService.deleteTask(id))
   })
 }
