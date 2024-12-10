@@ -1,11 +1,7 @@
 import { tasksCollection } from "./collections/tasksCollection.js"
 import { ObjectId } from "mongodb"
 import { NotFoundError } from "../../utils/error/customErrors.js"
-
-export const TaskStatus = Object.freeze({
-  TODO: "to-do",
-  DONE: "done",
-})
+import { TaskStatus } from "./constantsEnums.js"
 
 export class TasksService {
   constructor() {

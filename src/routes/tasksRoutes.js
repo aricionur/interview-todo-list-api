@@ -1,7 +1,7 @@
-import { ObjectId } from "mongodb"
 import { TasksService } from "../modules/tasks/tasksService.js"
 import { ProjectsService } from "../modules/projects/projectsService.js"
 import { NotFoundError } from "../utils/error/customErrors.js"
+import { joiPostTaskSchema, joiPutTaskSchema } from "../modules/tasks/collections/tasksCollection.js"
 
 export default (router) => {
   const tasksService = new TasksService()
@@ -25,6 +25,10 @@ export default (router) => {
   })
 
   router.post("/tasks", async (req, res) => {
+    // Validate values
+    const { error } = joiPostTaskSchema.validate(req.body)
+    if (error) return res.status(400).json({ error: error.details[0].message })
+
     const { projectId } = req.body
 
     if (!(await projectsService.getProjects({ _id: projectId }))) {
@@ -36,6 +40,10 @@ export default (router) => {
   })
 
   router.put("/tasks/:id", async (req, res) => {
+    // Validate values
+    const { error } = joiPutTaskSchema.validate(req.body)
+    if (error) return res.status(400).json({ error: error.details[0].message })
+
     const { id } = req.params
     if (!(await tasksService.getTasks({ _id: id }))) {
       res.status(404).send(`No task found for given id:${id}`)
@@ -54,7 +62,7 @@ export default (router) => {
     res.json(await tasksService.saveTask(task))
   })
 
-  // ***  we can also handle the not found items in with a try-catch block ***
+  // ***  we can also handle the not found items in  a try-catch block ***
   router.delete("/tasks/:id", async (req, res, next) => {
     try {
       const { id } = req.params
@@ -69,7 +77,7 @@ export default (router) => {
     }
   })
 
-  // ***  we can also handle the not found items in with a try-catch block ***
+  // ***  we can also handle the not found items in  a try-catch block ***
   router.put("/tasks/markDone/:id", async (req, res) => {
     try {
       const { id } = req.params
@@ -84,7 +92,7 @@ export default (router) => {
     }
   })
 
-  // ***  we can also handle the not found items in with a try-catch block ***
+  // ***  we can also handle the not found items in  a try-catch block ***
   router.put("/tasks/markUnDone/:id", async (req, res, next) => {
     try {
       const { id } = req.params

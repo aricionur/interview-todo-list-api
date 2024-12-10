@@ -1,4 +1,5 @@
 import { ProjectsService } from "../modules/projects/projectsService.js"
+import { joiPostProjectSchema, joiPutProjectSchema } from "../modules/projects/collections/projectsCollection.js"
 
 export default (router) => {
   const projectsService = new ProjectsService()
@@ -20,10 +21,18 @@ export default (router) => {
   })
 
   router.post("/projects", async (req, res) => {
+    // Validate values
+    const { error } = joiPostProjectSchema.validate(req.body)
+    if (error) return res.status(400).json({ error: error.details[0].message })
+
     res.json(await projectsService.saveProject(req.body))
   })
 
   router.put("/projects/:id", async (req, res) => {
+    // Validate values
+    const { error } = joiPutProjectSchema.validate(req.body)
+    if (error) return res.status(400).json({ error: error.details[0].message })
+
     const { id } = req.params
 
     if (!(await projectsService.getProjects({ _id: id }))) {
